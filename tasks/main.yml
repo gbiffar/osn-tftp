@@ -1,0 +1,47 @@
+---
+- name: tftp-server install
+  yum:
+    name: tftp-server
+    state: present
+
+- name: xinetd install
+  yum:
+    name: xinetd
+    state: present
+
+- name: mgt tftp-server xinetd config
+  template:
+    src: tftp-mgt.j2
+    dest: /etc/xinetd.d/tftp-mgt
+    mode: 0644
+    owner: root
+    group: root
+  notify: restart xinetd
+
+- name: ext tftp-server xinetd config
+  template:
+    src: tftp-ext.j2
+    dest: /etc/xinetd.d/tftp-ext
+    mode: 0644
+    owner: root
+    group: root
+  notify: restart xinetd
+
+- name: update services with tftp-mgt
+  lineinfile:
+    path: /etc/services
+    regexp: '^tftp-mgt'
+    line: 'tftp-mgt        69/udp'
+    
+- name: update services with tftp-ext
+  lineinfile:
+    path: /etc/services
+    regexp: '^tftp-ext'
+    line: 'tftp-ext        69/udp'
+
+- name: xinetd service
+  service:
+    name: xinetd
+    state: started
+    enabled: yes
+
